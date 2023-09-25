@@ -30,8 +30,8 @@ class TokenObtainView(APIView):
             # 사용자 인증 로직 수행
 
             token_key = f'token:{username}'  # 고유한 저장소(캐시 등)에 저장하기 위한 key
-            # cache.set(token_key, 1, timeout=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds())
-            cache.set(token_key, 1, timeout=None)
+            # cache.set(token_key, settings.YOUR_REQUEST_LIMIT, timeout=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds())
+            cache.set(token_key, settings.YOUR_REQUEST_LIMIT, timeout=None)
 
             refresh = RefreshToken.for_user(user)
             
@@ -60,10 +60,10 @@ class SearchView(APIView):
         request_count = cache.get(token_key)
 
         if request_count is not None:
-            request_count += 1
+            request_count -= 1
             cache.set(token_key, request_count)
 
-        if request_count > settings.YOUR_REQUEST_LIMIT:
+        if request_count == 0:
             cache.delete(token_key)
             return Response({'error': 'Token expired'}, status=401)
         

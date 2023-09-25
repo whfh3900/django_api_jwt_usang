@@ -36,6 +36,33 @@
     "error": "Invalid credentials"
 }
 ```
+#### 예제코드
+```
+import requests
+# POST 요청을 보낼 URL
+url = "http://172.25.0.21:8001/api/v1/token/"
+
+# 요청에 포함될 데이터 (JSON 형식)
+data = {
+    "username": "test",
+    "password": "test123~"
+}
+# POST 요청 보내기
+response = requests.post(url, json=data)
+
+# 응답 확인
+if response.status_code == 201:
+    # 성공적으로 요청이 처리되었을 때 실행할 코드
+    print("요청이 성공적으로 처리되었습니다.")
+    # print(response.json()['refresh'])
+    # print(response.json()['access'])
+    access_key = response.json()['access']
+
+else:
+    # 요청이 실패하였거나 오류가 발생했을 때 실행할 코드
+    print("요청 처리 중 오류가 발생하였습니다.")
+    print(response.status_code)
+```
 <br><br>
 ### 2. 유상증자 검색 API
 접근하기 위해 발급받은 JWT 토큰이 필요합니다.
@@ -133,6 +160,37 @@ Authorization: "Bearer <JWT_TOKEN>"
     ]
 }
 ```
+#### 예제코드
+```
+import requests
+
+# POST 요청을 보낼 URL
+url = "http://172.25.0.21:8001/api/v1/search/"
+
+# 요청에 포함될 데이터 (JSON 형식)
+data = {
+    "pub_ann_dt": "2023-02-17",
+}
+
+headers = {
+    "Authorization": "Bearer %s"%access_key
+}
+
+
+# POST 요청 보내기
+response = requests.post(url, json=data,  headers=headers)
+
+# 응답 확인
+if response.status_code == 200:
+    # 성공적으로 요청이 처리되었을 때 실행할 코드
+    print("요청이 성공적으로 처리되었습니다.")
+    print(response.json())
+
+else:
+    # 요청이 실패하였거나 오류가 발생했을 때 실행할 코드
+    print("요청 처리 중 오류가 발생하였습니다.")
+    print(response.status_code)
+```
 <br><br>
 ### 3. 남은 만료횟수 조회
 해당 JWT 토큰키의 만료횟수를 조회합니다
@@ -164,4 +222,31 @@ Authorization: "Bearer <JWT_TOKEN>"
         }
     ]
 }
+```
+#### 예제코드
+```
+import requests
+
+# POST 요청을 보낼 URL
+url = "http://172.25.0.21:8001/api/v1/count/"
+
+
+headers = {
+    "Authorization": "Bearer %s"%access_key
+}
+
+
+# POST 요청 보내기
+response = requests.get(url, headers=headers)
+
+# 응답 확인
+if response.status_code == 200:
+    # 성공적으로 요청이 처리되었을 때 실행할 코드
+    print("요청이 성공적으로 처리되었습니다.")
+    print(response.json())
+
+else:
+    # 요청이 실패하였거나 오류가 발생했을 때 실행할 코드
+    print("요청 처리 중 오류가 발생하였습니다.")
+    print(response.status_code)
 ```
