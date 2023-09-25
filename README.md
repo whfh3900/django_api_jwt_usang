@@ -21,7 +21,7 @@
   "password": "test123~"
 }
 ```
-- Response: Success 200 OK
+- Response: Success 201 OK
 - Response Body:
 ```
 {
