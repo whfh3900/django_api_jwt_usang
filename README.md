@@ -250,3 +250,66 @@ else:
     print("요청 처리 중 오류가 발생하였습니다.")
     print(response.status_code)
 ```
+<br><br>
+### 4. pdf 파일로 다운로드
+pdf파일 형태로 다운로드 합니다.
+- URL: http://172.25.0.21:8001/api/v1/download/
+- Method: POST
+- Headers:
+```
+Authorization: "Bearer <JWT_TOKEN>"
+```
+- Request Body:
+```
+### 조회할 공시날짜
+{
+  "pub_ann_dt": "2023-09-14"
+}
+```
+- Response: Failed 401 Unauthorized (잘못된 토큰키)
+- Response Body:
+```
+{
+    "detail": "Given token not valid for any token type",
+    "code": "token_not_valid",
+    "messages": [
+        {
+            "token_class": "AccessToken",
+            "token_type": "access",
+            "message": "Token is invalid or expired"
+        }
+    ]
+}
+```
+#### 예제코드
+```
+import requests
+import os
+
+# POST 요청을 보낼 URL
+url = "http://172.25.0.21:8001/api/v1/download/"
+
+pub_ann_dt = "2023-09-04"
+# 요청에 포함될 데이터 (JSON 형식)
+data = {
+    "pub_ann_dt": pub_ann_dt,
+}
+
+headers = {
+    "Authorization": "Bearer %s"%access_key
+}
+
+
+# POST 요청 보내기
+response = requests.post(url, json=data,  headers=headers)
+
+save_path = "../data/result_pdf"
+
+file_path = os.path.join(save_path, pub_ann_dt+".zip")
+if response.status_code == 200:
+    with open(file_path, 'wb') as file:
+        file.write(response.content)
+    print("압축 파일이 성공적으로 다운로드되었습니다.")
+else:
+    print("압축 파일 다운로드 실패:", response.status_code)
+```

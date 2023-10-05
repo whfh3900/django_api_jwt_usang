@@ -7,10 +7,11 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from .models import UsangData
 from .serializers import UsangDataSerializer
-
+from django.http import HttpResponse, FileResponse
+import zipfile
 from django.conf import settings
 from rest_framework import status
-
+import os
 
 class TokenObtainView(APIView):
     # POST 요청을 처리하는 뷰입니다.
@@ -45,7 +46,7 @@ class TokenObtainView(APIView):
                             status=401)
 
 class SearchView(APIView):
-    # GET 요청에 대해서만 허용되는 뷰입니다.
+    # POST 요청에 대해서만 허용되는 뷰입니다.
     # 해당 뷰에 접근하려면 클라이언트가 유효한 JWT 액세스 토큰(access token)을 제공해야 합니다.
     # 액세스 토큰이 유효한 경우, data에 대한 응답을 반환합니다.
     # 액세스 토큰이 유효하지 않거나 제공되지 않은 경우, 인증 오류 응답이 반환됩니다.
@@ -77,6 +78,40 @@ class SearchView(APIView):
         else:
             return Response({'message': "No data retrieved"}, status=200)
 
+
+class DownloadView(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        token_key = f'token:{request.user.username}'
+        request_count = cache.get(token_key)
+
+        if request_count is not None:
+            request_count -= 1
+            cache.set(token_key, request_count)
+
+        if request_count == 0:
+            cache.delete(token_key)
+            return Response({'error': 'Token expired'}, status=401)
+        
+        folder_path = "/home/manager/usang/pdf"
+        data = request.data.get('pub_ann_dt')
+        
+        zip_file_path = os.path.join(folder_path, data+".zip")  # 다운로드할 파일의 경로
+    
+        try:
+            if os.path.exists(zip_file_path):
+                with open(zip_file_path, 'rb') as file:
+                    response = HttpResponse(file.read(), content_type='application/octet-stream')
+                    response['Content-Disposition'] = 'attachment; filename="%s"'%(data+".zip")
+                    return response
+            else:
+                return HttpResponse("File not found.", status=404)
+        
+        except FileNotFoundError:
+            return HttpResponse("Folder not found.", status=404)
 
 
 class RequestCountView(APIView):
